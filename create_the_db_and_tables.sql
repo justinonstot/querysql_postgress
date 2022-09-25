@@ -32,7 +32,7 @@ CREATE SCHEMA Stats;
 ---------------------------------------------------------------------
 -- Create Tables
 ---------------------------------------------------------------------
--- drop table HR.Employees
+
 -- Create table HR.Employees
 CREATE TABLE HR.Employees
 (
@@ -50,11 +50,11 @@ CREATE TABLE HR.Employees
   country         VARCHAR(15) NOT NULL,
   phone           VARCHAR(24) NOT NULL,
   mgrid           INT  REFERENCES HR.Employees(empid) NOT NULL,
-  CONSTRAINT CHK_birthdate CHECK(birthdate <= NOW()::date),
+  CONSTRAINT PK_Employees PRIMARY KEY(empid),
   FOREIGN KEY (mgrid) REFERENCES HR.Employees(empid)  
 );
 
-
+--CONSTRAINT CHK_birthdate CHECK(birthdate <= CAST(SYSDATETIME() AS DATE))
 
 CREATE NONCLUSTERED INDEX idx_nc_lastname   ON HR.Employees(lastname);
 CREATE NONCLUSTERED INDEX idx_nc_postalcode ON HR.Employees(postalcode);
