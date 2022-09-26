@@ -1,12 +1,12 @@
 ---------------------------------------------------------------------
 -- Script that creates the sample database TSQLV3
 --
--- Supported versions of SQL Server: 2008, 2008 R2, 2012, 2014, Microsoft Azure SQL Database
+-- EDITED by Justin Onstot for use against PostGresQL 13
 --
 -- Based originally on the Northwind sample database
 -- with changes in both schema and data
 --
--- Last updated: 20141217
+-- Last updated: 20220925
 --
 -- © Itzik Ben-Gan
 ---------------------------------------------------------------------
@@ -168,33 +168,25 @@ CREATE  INDEX idx_nc_orderdate      ON Sales.Orders(orderdate);
 CREATE  INDEX idx_nc_shippeddate    ON Sales.Orders(shippeddate);
 CREATE  INDEX idx_nc_shippostalcode ON Sales.Orders(shippostalcode);
 
--- left off here
--- LEFT OFF HERE _____________------>>>>>>>
--- LEFT OFF HERE --->>>>>>>>>>>>>>>>
 
 -- Create table Sales.OrderDetails
 CREATE TABLE Sales.OrderDetails
 (
   orderid   INT           NOT NULL,
   productid INT           NOT NULL,
-  unitprice MONEY         NOT NULL
-    CONSTRAINT DFT_OrderDetails_unitprice DEFAULT(0),
-  qty       SMALLINT      NOT NULL
-    CONSTRAINT DFT_OrderDetails_qty DEFAULT(1),
-  discount  NUMERIC(4, 3) NOT NULL
-    CONSTRAINT DFT_OrderDetails_discount DEFAULT(0),
+  unitprice NUMERIC(19,4)         NOT NULL DEFAULT(0),
+  qty       SMALLINT      NOT NULL DEFAULT(1),
+  discount  NUMERIC(4, 3) NOT NULL DEFAULT(0),
   CONSTRAINT PK_OrderDetails PRIMARY KEY(orderid, productid),
-  CONSTRAINT FK_OrderDetails_Orders FOREIGN KEY(orderid)
-    REFERENCES Sales.Orders(orderid),
-  CONSTRAINT FK_OrderDetails_Products FOREIGN KEY(productid)
-    REFERENCES Production.Products(productid),
+  FOREIGN KEY(orderid) REFERENCES Sales.Orders(orderid),
+  FOREIGN KEY(productid) REFERENCES Production.Products(productid),
   CONSTRAINT CHK_discount  CHECK (discount BETWEEN 0 AND 1),
   CONSTRAINT CHK_qty  CHECK (qty > 0),
   CONSTRAINT CHK_unitprice CHECK (unitprice >= 0)
 );
 
-CREATE NONCLUSTERED INDEX idx_nc_orderid   ON Sales.OrderDetails(orderid);
-CREATE NONCLUSTERED INDEX idx_nc_productid ON Sales.OrderDetails(productid);
+CREATE  INDEX idx_nc_orderid   ON Sales.OrderDetails(orderid);
+CREATE  INDEX idx_nc_productid ON Sales.OrderDetails(productid);
 
 -- Create table Stats.Tests
 CREATE TABLE Stats.Tests
@@ -208,14 +200,14 @@ CREATE TABLE Stats.Scores
 (
   testid    VARCHAR(10) NOT NULL,
   studentid VARCHAR(10) NOT NULL,
-  score     TINYINT     NOT NULL
+  score     INT     NOT NULL
     CONSTRAINT CHK_Scores_score CHECK (score BETWEEN 0 AND 100),
   CONSTRAINT PK_Scores PRIMARY KEY(testid, studentid),
-  CONSTRAINT FK_Scores_Tests FOREIGN KEY(testid)
+  FOREIGN KEY(testid)
     REFERENCES Stats.Tests(testid)
 );
 
-CREATE NONCLUSTERED INDEX idx_nc_testid_score ON Stats.Scores(testid, score);
+CREATE  INDEX idx_nc_testid_score ON Stats.Scores(testid, score);
 
 ---------------------------------------------------------------------
 -- Populate Tables
@@ -244,6 +236,10 @@ INSERT INTO HR.Employees(empid, lastname, firstname, title, titleofcourtesy, bir
 INSERT INTO HR.Employees(empid, lastname, firstname, title, titleofcourtesy, birthdate, hiredate, address, city, region, postalcode, country, phone, mgrid)
   VALUES(9, N'Doyle', N'Patricia', N'Sales Representative', N'Ms.', '19860127', '20141115', N'1234 Houndstooth Rd.', N'London', NULL, N'10008', N'UK', N'(71) 456-7890', 5);
 SET IDENTITY_INSERT HR.Employees OFF;
+
+--LEFT OFF HERE
+--LEFT OFF HERE
+--LEFT OFF HERE
 
 -- Populate table Production.Suppliers
 SET IDENTITY_INSERT Production.Suppliers ON;
