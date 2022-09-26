@@ -6746,21 +6746,20 @@ AS
 
 SELECT
   O.custid, 
-  DATEADD(month, DATEDIFF(month, CAST('19000101' AS DATE), O.orderdate), CAST('19000101' AS DATE)) AS ordermonth,
+ -- DATEADD(month, DATEDIFF(month, CAST('19000101' AS DATE), O.orderdate), CAST('19000101' AS DATE)) AS ordermonth,
+  date(date_trunc('month', o.orderdate)) as ordermonth,
   SUM(OD.qty) AS qty
 FROM Sales.Orders AS O
   JOIN Sales.OrderDetails AS OD
     ON OD.orderid = O.orderid
-GROUP BY custid, DATEADD(month, DATEDIFF(month, CAST('19000101' AS DATE), O.orderdate), CAST('19000101' AS DATE));
+GROUP BY custid, date(date_trunc('month', o.orderdate));
 
 
-CREATE VIEW Sales.EmpOrders  
-  WITH SCHEMABINDING  
-AS  
-  
+CREATE VIEW Sales.EmpOrders
+AS
 SELECT  
   O.empid,
-  DATEADD(month, DATEDIFF(month, CAST('19000101' AS DATE), O.orderdate), CAST('19000101' AS DATE)) AS ordermonth,
+  date(date_trunc('month', o.orderdate)) AS ordermonth,
   SUM(OD.qty) AS qty,
   CAST(SUM(OD.qty * OD.unitprice * (1 - discount))  
        AS NUMERIC(12, 2)) AS val,
@@ -6768,22 +6767,16 @@ SELECT
 FROM Sales.Orders AS O  
   JOIN Sales.OrderDetails AS OD  
     ON OD.orderid = O.orderid  
-GROUP BY empid, DATEADD(month, DATEDIFF(month, CAST('19000101' AS DATE), O.orderdate), CAST('19000101' AS DATE));
-GO
+GROUP BY empid, date(date_trunc('month', o.orderdate));
 
-CREATE FUNCTION dbo.GetNums(@low AS BIGINT, @high AS BIGINT) RETURNS TABLE
-AS
-RETURN
-  WITH
-    L0   AS (SELECT c FROM (SELECT 1 UNION ALL SELECT 1) AS D(c)),
-    L1   AS (SELECT 1 AS c FROM L0 AS A CROSS JOIN L0 AS B),
-    L2   AS (SELECT 1 AS c FROM L1 AS A CROSS JOIN L1 AS B),
-    L3   AS (SELECT 1 AS c FROM L2 AS A CROSS JOIN L2 AS B),
-    L4   AS (SELECT 1 AS c FROM L3 AS A CROSS JOIN L3 AS B),
-    L5   AS (SELECT 1 AS c FROM L4 AS A CROSS JOIN L4 AS B),
-    Nums AS (SELECT ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS rownum
-             FROM L5)
-  SELECT TOP(@high - @low + 1) @low + rownum - 1 AS n
-  FROM Nums
-  ORDER BY rownum;
-GO
+
+CREATE OR REPLACE FUNCTION public.GetNums (p_low BIGINT, p_high BIGINT)
+    RETURNS TABLE (n BIGINT)
+   language plpgsql
+  as $$
+  begin
+      RETURN QUERY
+    select generate_series(p_low,p_high);
+end;
+$$
+
